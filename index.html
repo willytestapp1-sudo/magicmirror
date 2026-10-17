@@ -14,12 +14,12 @@
         }
     </style>
 </head>
-<body class="bg-black text-slate-200 min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-black text-slate-200 min-h-screen flex flex-col md:items-center md:justify-center p-0 md:p-4 font-sans">
 
-    <div class="max-w-2xl w-full bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row">
+    <div class="max-w-2xl w-full bg-white/5 backdrop-blur-xl md:rounded-3xl shadow-2xl md:overflow-hidden border-x border-b border-white/10 flex flex-col md:flex-row">
 
         <!-- Left: Viewport -->
-        <div class="relative flex-1 bg-black aspect-square md:aspect-auto min-h-[400px] flex items-center justify-center overflow-hidden">
+        <div class="relative flex-1 bg-black sticky top-0 z-10 h-[45vh] md:h-auto aspect-square md:aspect-auto min-h-[300px] md:min-h-[400px] flex items-center justify-center overflow-hidden">
             <video id="webcam" autoplay playsinline class="w-full h-full object-cover -scale-x-100 transition-all duration-500"></video>
             <canvas id="canvas" class="hidden"></canvas>
 
@@ -58,6 +58,33 @@
                     <button onclick="cambiarFiltro('blur(5px)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Dreamy</button>
                     <button onclick="cambiarFiltro('brightness(1.5) contrast(1.2)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Luminoso</button>
                     <button onclick="cambiarFiltro('contrast(200%)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Intenso</button>
+                    <button onclick="cambiarFiltro('hue-rotate(180deg) saturate(200%) contrast(120%)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Cyberpunk</button>
+                    <button onclick="cambiarFiltro('grayscale(100%) contrast(150%) brightness(80%)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Noir</button>
+                    <button onclick="cambiarFiltro('sepia(30%) brightness(110%) saturate(120%)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Warm Glow</button>
+                    <button onclick="cambiarFiltro('hue-rotate(160deg) brightness(70%) saturate(150%)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Deep Sea</button>
+                    <button onclick="cambiarFiltro('invert(100%) brightness(120%) blur(1px)', this)" class="filter-btn px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-medium transition-all border border-white/10 text-left">Ghost</button>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-white/10">
+                <label class="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-4 block">Ajustes Manuales</label>
+                <div class="space-y-4">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between text-[10px] text-slate-400"><span>Brillo</span><span id="val-brightness">1.0</span></div>
+                        <input type="range" id="brightness" min="0.5" max="2" step="0.1" value="1" oninput="updateFilters()" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between text-[10px] text-slate-400"><span>Contraste</span><span id="val-contrast">1.0</span></div>
+                        <input type="range" id="contrast" min="0.5" max="2" step="0.1" value="1" oninput="updateFilters()" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between text-[10px] text-slate-400"><span>Saturación</span><span id="val-saturate">100%</span></div>
+                        <input type="range" id="saturate" min="0" max="200" step="10" value="100" oninput="updateFilters()" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex justify-between text-[10px] text-slate-400"><span>Desenfoque</span><span id="val-blur">0px</span></div>
+                        <input type="range" id="blur" min="0" max="10" step="1" value="0" oninput="updateFilters()" class="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white">
+                    </div>
                 </div>
             </div>
 
@@ -82,6 +109,7 @@
         const loadingDiv = document.getElementById('loading');
 
         let isMirrored = true;
+        let activePreset = 'none';
 
         async function iniciarApp() {
             try {
@@ -94,10 +122,25 @@
             }
         }
 
+        function updateFilters() {
+            const b = document.getElementById('brightness').value;
+            const c = document.getElementById('contrast').value;
+            const s = document.getElementById('saturate').value;
+            const bl = document.getElementById('blur').value;
+
+            document.getElementById('val-brightness').innerText = b;
+            document.getElementById('val-contrast').innerText = c;
+            document.getElementById('val-saturate').innerText = s + '%';
+            document.getElementById('val-blur').innerText = bl + 'px';
+
+            video.style.filter = `${activePreset} brightness(${b}) contrast(${c}) saturate(${s}%) blur(${bl}px)`;
+        }
+
         function cambiarFiltro(filtro, btn) {
-            video.style.filter = filtro;
+            activePreset = filtro;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            updateFilters();
         }
 
         function toggleMirror() {
