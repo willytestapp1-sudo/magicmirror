@@ -6,7 +6,13 @@
     <title>Magic Mirror Pro ✨</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="core.js"></script>
+    <style>
+        .filter-btn.active {
+            background-color: white;
+            color: black;
+            border-color: white;
+        }
+    </style>
 </head>
 <body class="bg-black text-slate-200 min-h-screen flex flex-col md:items-center md:justify-center p-0 md:p-4 font-sans">
 
@@ -92,11 +98,8 @@
         </div>
     </div>
 
-<script>
-    async function iniciarApp() {}
-    function updateFilters() {}
-    function cambiarFiltro() {}
-    function toggleMirror() {}
-</script>
+    <script src="studio.js"></script>
+    </script>
+</head>
 </body>
 </html>
